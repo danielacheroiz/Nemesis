@@ -1,0 +1,38 @@
+local PromptGui = script.Parent
+local ActionText = PromptGui.ActionText
+local Button = PromptGui.Button
+local Progress = Button.Progress
+local TS = game.TweenService
+local CurrentTween
+PromptGui.Enabled = false
+function SetupProximityPrompt(ProximityPrompt)
+	ProximityPrompt.PromptShown:Connect(function()
+		PromptGui.Enabled = true
+		PromptGui.Adornee = ProximityPrompt.Parent
+		ActionText.Text = ProximityPrompt.ActionText
+		Button.Text = ProximityPrompt.KeyboardKeyCode.Name
+	end)
+	ProximityPrompt.PromptHidden:Connect(function()
+		PromptGui.Enabled = false
+		PromptGui.Adornee = nil
+	end)
+	ProximityPrompt.PromptButtonHoldBegan:Connect(function()
+		CurrentTween = TS:Create(Progress,TweenInfo.new(ProximityPrompt.HoldDuration),{Size = UDim2.new(1,0,1,0)})
+		CurrentTween:Play()
+	end)
+	ProximityPrompt.PromptButtonHoldEnded:Connect(function()
+		CurrentTween:Cancel()
+		Progress.Size = UDim2.new(0,0,1,0)
+	end)
+end
+
+for i,v in pairs(game.Workspace:GetDescendants()) do
+	if v:IsA("ProximityPrompt") then
+		SetupProximityPrompt(v)
+	end
+end
+game.Workspace.DescendantAdded:Connect(function(Child)
+	if Child:IsA("ProximityPrompt") then
+		SetupProximityPrompt(Child)
+	end
+end)
